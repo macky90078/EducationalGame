@@ -25,9 +25,10 @@ GameObject:
   - component: {fileID: 108617804254404938}
   - component: {fileID: 54717237343924056}
   - component: {fileID: 65441468962290568}
+  - component: {fileID: 114786975380230202}
   m_Layer: 0
   m_Name: arrow
-  m_TagString: Untagged
+  m_TagString: Arrow
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -164,3 +165,15 @@ Light:
   m_UseColorTemperature: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+--- !u!114 &114786975380230202
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1262400552151478}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf6eac617ed611b4287cae42fed47649, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_lifeTime: 1

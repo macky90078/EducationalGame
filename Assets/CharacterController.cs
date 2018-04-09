@@ -7,6 +7,9 @@ public class CharacterController : MonoBehaviour {
     [SerializeField]
     private float m_speed = 10.0f;
 
+    [SerializeField]
+    GameObject m_cam;
+
 	void Start ()
     {
         Cursor.lockState = CursorLockMode.Locked;
@@ -27,4 +30,13 @@ public class CharacterController : MonoBehaviour {
             Cursor.lockState = CursorLockMode.None;
         }
 	}
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if(collision.transform.tag == "Target")
+        {
+            m_cam.SetActive(true);
+            Destroy(gameObject);
+        }
+    }
 }
