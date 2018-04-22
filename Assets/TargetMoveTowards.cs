@@ -4,34 +4,29 @@ using UnityEngine;
 
 public class TargetMoveTowards : MonoBehaviour {
 
-    private GameObject m_player;
+    [SerializeField]
+    private GameObject m_target1;
+    [SerializeField]
+    private GameObject m_target2;
 
     [SerializeField]
     private float m_speed = 5;
 
-    [SerializeField]
-    private float m_score = 2;
-
-    private GameObject m_gameManager;
-
-    private void Awake()
-    {
-        m_gameManager = GameObject.FindGameObjectWithTag("GameManager");
-        m_player = GameObject.FindGameObjectWithTag("Player");
-    }
-    // Update is called once per frame
-    void Update ()
-    {
-	}
+    private bool m_moveToTarget1 = true;
+    private bool m_moveToTarget2 = false;
 
     private void FixedUpdate()
     {
-        /*Vector3 toTarget = m_player.transform.position - transform.position;
-
-        transform.Translate(toTarget * 2 * Time.deltaTime);*/
-
-        if(m_player != null)
-        transform.position = Vector3.MoveTowards(transform.position, m_player.transform.position, m_speed * Time.deltaTime);
+        if (m_target1 != null && m_moveToTarget1)
+        {
+            transform.position = Vector3.MoveTowards(transform.position, m_target1.transform.position, m_speed * Time.deltaTime);
+            transform.LookAt(m_target1.transform);
+        }
+        else if(m_target2 != null && m_moveToTarget2)
+        {
+            transform.position = Vector3.MoveTowards(transform.position, m_target2.transform.position, m_speed * Time.deltaTime);
+            transform.LookAt(m_target2.transform);
+        }
 
     }
 
@@ -39,9 +34,21 @@ public class TargetMoveTowards : MonoBehaviour {
     {
         if(collision.transform.tag == "Arrow")
         {
-            //Destroy(collision.gameObject);
-            m_gameManager.GetComponent<GameManager>().m_score += m_score;
             Destroy(gameObject);
+        }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.tag == "Target1")
+        {
+            m_moveToTarget1 = false;
+            m_moveToTarget2 = true;
+        }
+        if(other.tag == "Target2")
+        {
+            m_moveToTarget2 = false;
+            m_moveToTarget1 = true;
         }
     }
 }

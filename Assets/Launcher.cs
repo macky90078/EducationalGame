@@ -24,18 +24,31 @@ public class Launcher : MonoBehaviour {
     public float m_groundDist;
 
     public float m_drawTime = 1.2f;
+    private float m_alloweBreathTime = 1.75f;
 
     [SerializeField]
     private bool m_debugPath;
 
-	// Use this for initialization
-	void Start ()
+    private bool m_isHoldingBreath = false;
+
+    private Transform m_initBowPos;
+    float timer = 0.2f;
+    public float pullTimer = 0.5f;
+
+    public float m_distanceFromBow;
+
+    private bool m_scrollTargetBack = false;
+    private bool m_aiming = false;
+    public bool m_hasPulled = false;
+
+
+    private void Awake()
     {
-      //  m_rb.useGravity = false;	
-	}
-	
-	// Update is called once per frame
-	void Update () {
+        m_initBowPos = transform;
+    }
+
+    // Update is called once per frame
+    void Update () {
 
         RaycastHit hit;
 
@@ -47,19 +60,64 @@ public class Launcher : MonoBehaviour {
         }
 
 
-        if (Input.GetKey(KeyCode.Mouse0) && m_drawTime > 0)
+        if (Input.GetKey(KeyCode.Mouse0) && m_distanceFromBow <= 40 && !m_scrollTargetBack /*m_drawTime > 0*/)
         {
-            //m_moveDist += 0.05f * Time.deltaTime;
-            m_drawTime -= Time.deltaTime;
-            m_target.position += transform.forward * Time.deltaTime * 30f;
-  
+            m_distanceFromBow = Vector3.Distance(transform.position, m_target.position);
+            m_target.position += transform.right * Time.deltaTime * 15f;
         }
 
-        if (Input.GetKeyUp(KeyCode.Mouse0))
+        if (Input.GetKey(KeyCode.Mouse1) && m_distanceFromBow >= 1.5f)
         {
-            Launch();
-            m_target.position = transform.position;
+            m_distanceFromBow = Vector3.Distance(transform.position, m_target.position);
+            m_target.position -= transform.right * Time.deltaTime * 15f;
+            m_scrollTargetBack = true;
+        }
+        else
+        {
+            m_scrollTargetBack = false;
+        }
+        if (Input.GetKey(KeyCode.LeftShift) && m_alloweBreathTime > 0)
+        {
+            m_alloweBreathTime -= Time.deltaTime;
+            m_isHoldingBreath = true;
+        }
+        else
+        {
+            m_isHoldingBreath = false;
+        }
+
+        if(Input.GetKeyUp(KeyCode.LeftShift))
+        {
+            m_alloweBreathTime = 1.75f;
+        }
+
+        if(Input.GetKey(KeyCode.Space))
+        {
+            m_aiming = true;
+            pullTimer -= Time.deltaTime;
+            if(pullTimer < 0)
+            {
+                m_hasPulled = true;
+            }
+        }
+        if (Input.GetKeyUp(KeyCode.Space))
+        {
+            if (m_hasPulled)
+            {
+                Launch();
+                pullTimer = 0.5f;
+                m_hasPulled = false;
+            }
+            else if(!m_hasPulled)
+            {
+                BadLaunch();
+                pullTimer = 0.5f;
+                m_hasPulled = false;
+            }
+            m_target.position = transform.position + transform.right * 1;
             m_drawTime = 1.2f;
+            m_distanceFromBow = 0;
+            m_aiming = false;
             if (m_debugPath)
             {
                 DrawPath();
@@ -71,15 +129,48 @@ public class Launcher : MonoBehaviour {
     private void FixedUpdate()
     {
         bool hit = Physics.Raycast(m_bowHObject.transform.position, -transform.up, Mathf.Infinity);
+        if (m_aiming)
+        {
+            if (!m_isHoldingBreath)
+            {
+                SwayBow();
+            }
+        }
+    }
+
+    private void SwayBow()
+    {
+        timer -= Time.deltaTime;
+        if (timer > 0)
+        {
+            transform.Translate(Vector3.forward * (Time.deltaTime * 0.25f));
+            m_target.Translate(Vector3.right * (Time.deltaTime * 5));
+        }
+        else if(timer < 0 && timer > -0.2f)
+        {
+            transform.Translate(-Vector3.forward * (Time.deltaTime * 0.25f));
+            m_target.Translate(-Vector3.right * (Time.deltaTime * 5));
+        }
+        else if(timer <= -0.2f)
+        {
+            timer = 0.2f;
+        }
     }
 
     private void Launch()
     {
         Physics.gravity = Vector3.up * m_gravity;
-        GameObject arrow = Instantiate(m_arrowObject, transform.position - new Vector3(0, 0.3f, 0), transform.rotation);
+        GameObject arrow = Instantiate(m_arrowObject, transform.position, m_bowHObject.transform.rotation);
         m_rb = arrow.GetComponent<Rigidbody>();
         m_rb.useGravity = true;
         m_rb.velocity = CalculateLaunchData().initialVelocity;
+    }
+
+    private void BadLaunch()
+    {
+        GameObject arrow = Instantiate(m_arrowObject, transform.position, m_bowHObject.transform.rotation);
+        m_rb = arrow.GetComponent<Rigidbody>();
+        m_rb.velocity = new Vector3(0, 1, 0);
     }
 
     LaunchData CalculateLaunchData()
